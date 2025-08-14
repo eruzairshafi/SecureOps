@@ -15,17 +15,22 @@
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\SecureOps.xml</DocumentationFile>
 		<PackageReadmeFile>NuGetReadme.md</PackageReadmeFile>
+		<PreserveCompilationContext>true</PreserveCompilationContext>
+		<CopyRefAssembliesToPublishDirectory>true</CopyRefAssembliesToPublishDirectory>
 	</PropertyGroup>
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 	
 	<ItemGroup>
+		<PackageReference Include="RazorLight" Version="2.3.1" />
 		<PackageReference Include="StackExchange.Redis" Version="2.8.41" />
 	</ItemGroup>	
 	
 	<ItemGroup>
 		<None Include="NuGetReadme.md" Pack="true" PackagePath="" />
 	</ItemGroup>
-	
+	<ItemGroup>
+		<EmbeddedResource Include="Presentation\UI\Views\**\*.cshtml" />
+	</ItemGroup>
 </Project>

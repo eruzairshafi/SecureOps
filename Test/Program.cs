@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SecureOps;
-using SecureOps.Endpoints;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -75,14 +74,22 @@ if (app.Environment.IsDevelopment())
 
 app.UseSecureOps(configure =>
 {
-    configure.MapPermissionEndpoints(ops =>
-    {
-        ops.RoutePrefix = "api/permissions"; // Set the route prefix for permission endpoints
-        ops.PermissionClaim = "ManagePermissions"; // Set the claim type for permissions
-        ops.EnableUserPermissionManagement = true; // Enable user permission management endpoints
-        ops.EnableListingAllPermissions = true; // Enable Listng permission management endpoints
-        ops.EnableGlobalPermissionManagement = true; // Enable Global permission management endpoints
-    });
+    configure.PermissionClaim = null; // Set the claim type for permissions
+
+});
+app.UseSecureOpsEndpoints(configure =>
+{
+    configure.RoutePrefix = "/api/secureOps/permissions"; // Set the route prefix for secure operations endpoints
+    configure.EnableUserPermissionManagement = true; // Enable user permission management endpoints
+    configure.EnableGlobalPermissionManagement = true; // Enable Global permission management endpoints
+    configure.EnableListingAllPermissions = true; // Enable Listing permission management endpoints
+});
+app.UseSecureOpsUI(configure =>
+{
+    configure.RoutePrefix = "/secureOps/permissions"; // Set the route prefix for permission endpoints
+    configure.EnableUserPermissionManagement = true; // Enable user permission management endpoints
+    configure.EnableListingAllPermissions = true; // Enable Listng permission management endpoints
+    configure.EnableGlobalPermissionManagement = true; // Enable Global permission management endpoints
 });
 
 app.UseHttpsRedirection();

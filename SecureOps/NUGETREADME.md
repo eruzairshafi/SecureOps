@@ -1,8 +1,4 @@
-﻿// =========================
-// 📦 NuGet README (for .csproj)
-// =========================
-
-# SecureOps
+﻿# SecureOps
 
 **SecureOps** is a lightweight, extensible, feature-based authorization framework for ASP.NET Core.
 
@@ -79,6 +75,6 @@ builder.Services.AddSecureOps(options =>
 
 ---
 
-## License
 
-SecureOps is licensed under the MIT License.
+## Feedback & Contributing
+SecureOps is licensed under the MIT License. Bug reports and contributions are welcome at the [GitHub repository](https://github.com/eruzairshafi/SecureOps).
