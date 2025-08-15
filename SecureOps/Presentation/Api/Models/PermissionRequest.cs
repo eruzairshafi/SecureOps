@@ -1,4 +1,4 @@
-﻿namespace SecureOps.Presentation.Endpoints.Model;
+﻿namespace SecureOps.Presentation.Api.Models;
 /// <summary>
 /// Represents a request for a specific permission within the system.
 /// </summary>

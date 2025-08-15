@@ -82,7 +82,7 @@ app.UseSecureOpsEndpoints(configure =>
     configure.RoutePrefix = "/api/secureOps/permissions"; // Set the route prefix for secure operations endpoints
     configure.EnableUserPermissionManagement = true; // Enable user permission management endpoints
     configure.EnableGlobalPermissionManagement = true; // Enable Global permission management endpoints
-    configure.EnableListingAllPermissions = true; // Enable Listing permission management endpoints
+    configure.EnableListingAllAvailablePermissions = true; // Enable Listing permission management endpoints
 });
 app.UseSecureOpsUI(configure =>
 {

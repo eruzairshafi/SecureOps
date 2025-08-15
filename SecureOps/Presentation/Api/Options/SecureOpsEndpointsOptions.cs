@@ -19,10 +19,10 @@ public class SecureOpsEndpointsOptions
     public bool EnableGlobalPermissionManagement { get; set; } = false;
 
     /// <summary>
-    /// Enables or disables the endpoint for listing all registered permissions.
+    /// Enables or disables the endpoint for listing all Available permissions.
     /// Default is <c>false</c>.
     /// </summary>
-    public bool EnableListingAllPermissions { get; set; } = false;
+    public bool EnableListingAllAvailablePermissions { get; set; } = false;
 
     /// <summary>
     /// The route prefix under which the permission API endpoints will be exposed.

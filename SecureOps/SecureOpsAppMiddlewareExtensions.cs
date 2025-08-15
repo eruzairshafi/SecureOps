@@ -1,13 +1,9 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using SecureOps.Options;
 using SecureOps.Presentation.Api;
 using SecureOps.Presentation.Api.Options;
-using SecureOps.Presentation.Endpoints.Model;
 using SecureOps.Presentation.UI;
 using SecureOps.Presentation.UI.Options;
-using SecureOps.Services;
 
 namespace SecureOps;
 
@@ -41,15 +37,15 @@ public static class SecureOpsAppMiddlewareExtensions
         this WebApplication app,
         Action<SecureOpsMiddlewareOptions>? configure = null)
     {
-        
+
         var ops = new SecureOpsMiddlewareOptions();
         configure?.Invoke(ops);
-        
+
         app.UseAuthentication();
         app.UseAuthorization();
         return app;
     }
-    
+
     /// <summary>
     /// Configures the application to use secure operational endpoints with optional customization.
     /// </summary>
@@ -61,14 +57,15 @@ public static class SecureOpsAppMiddlewareExtensions
     /// <returns>The <see cref="WebApplication"/> instance, allowing for further configuration.</returns>
     public static WebApplication UseSecureOpsEndpoints(
         this WebApplication app,
-        Action<SecureOpsEndpointsOptions>? configure = null)    {
-        
-        Endpoints.MapPermissionEndpoints(app, configure);        
+        Action<SecureOpsEndpointsOptions>? configure = null)
+    {
+
+        Endpoints.MapPermissionEndpoints(app, configure);
 
         return app;
     }
 
-    
+
     public static WebApplication UseSecureOpsUI(
         this WebApplication app,
         Action<SecureOpsUIOptions>? configure = null)

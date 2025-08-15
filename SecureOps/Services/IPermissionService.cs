@@ -1,4 +1,6 @@
-﻿namespace SecureOps.Services;
+﻿using SecureOps.Authorize.Models;
+
+namespace SecureOps.Services;
 
 /// <summary>
 /// Defines methods for managing and verifying user and global permissions.
@@ -54,6 +56,9 @@ public interface IPermissionService
     /// <returns>A task that represents the asynchronous operation. The task result contains a list of strings,  where each
     /// string represents a permission name. If no permissions are available, the list will be empty.</returns>
     Task<List<string>> GetAllPermissionsAsync();
+
+
+    List<PermissionModel> GetAllAvailablePermissions();
 
     /// <summary>
     /// Adds a global permission to the system asynchronously.

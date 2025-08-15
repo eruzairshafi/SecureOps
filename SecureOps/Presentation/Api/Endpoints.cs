@@ -1,15 +1,15 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using SecureOps.Presentation.Api.Models;
 using SecureOps.Presentation.Api.Options;
-using SecureOps.Presentation.Endpoints.Model;
 using SecureOps.Services;
 
 namespace SecureOps.Presentation.Api;
 
 internal class Endpoints
 {
-    private static SecureOpsEndpointsOptions options = new SecureOpsEndpointsOptions();
+    private readonly static SecureOpsEndpointsOptions options = new();
 
     /// <summary>
     /// Configures and maps permission-related endpoints to the specified <see cref="IEndpointRouteBuilder"/>.
@@ -85,14 +85,19 @@ internal class Endpoints
                 await service.RemoveGlobalPermissionAsync(req.Permission);
                 return Results.Ok();
             });
+            group.MapGet("global", async (IPermissionService service) =>
+            {
+                var all = await service.GetAllPermissionsAsync();
+                return Results.Ok(all);
+            });
         }
 
         // ✅ List All
-        if (options.EnableListingAllPermissions)
+        if (options.EnableListingAllAvailablePermissions)
         {
-            group.MapGet("all", async (IPermissionService service) =>
+            group.MapGet("Available", (IPermissionService service) =>
             {
-                var all = await service.GetAllPermissionsAsync();
+                var all = service.GetAllAvailablePermissions();
                 return Results.Ok(all);
             });
         }

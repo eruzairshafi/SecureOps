@@ -1,19 +1,365 @@
-﻿
+﻿@using Microsoft.AspNetCore.Html
+@using SecureOps.Presentation.UI.Models
+@using System.Text.Json
+@model PermissionViewModel
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Permission Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .permission-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .modal-exit {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .modal-exit-active {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+    </style>
 </head>
-<body>
-    <h1>Manage Permissions for a</h1>
-    <form method="post">
-        
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
-                <input type="checkbox" name="SelectedPermissions" />
-                <label>aa</label>
+                <h1 class="text-3xl font-bold text-gray-800">Permission Management</h1>
+                <p class="text-gray-600 mt-2">Manage and assign permissions to users</p>
             </div>
-        
-        <button type="submit">Save</button>
-    </form>
+            <div class="mt-4 md:mt-0 relative w-full md:w-64">
+                <input type="text" placeholder="Search permissions..." class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <!-- Tabs -->
+            <div class="border-b border-gray-200">
+                <div class="flex">
+                    <button id="all-tab" class="px-6 py-3 font-medium text-blue-600 border-b-2 border-blue-600">All Permissions</button>
+                    <button id="assigned-tab" class="px-6 py-3 font-medium text-gray-500 hover:text-gray-700">Assigned</button>
+                    <button id="unassigned-tab" class="px-6 py-3 font-medium text-gray-500 hover:text-gray-700">Unassigned</button>
+                </div>
+            </div>
+
+            <!-- Permission Grid -->
+            <div class="p-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="permissions-container">
+                    <!-- Permissions will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Permission Modal -->
+    <div id="assign-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md modal transition-all">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">Assign Permission</h3>
+                    <button id="close-modal" class="text-gray-400 hover:text-gray-500">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="mb-6">
+                    <p class="text-gray-700 mb-2">Permission: <span id="permission-name" class="font-medium">Read Users</span></p>
+                    <p class="text-sm text-gray-500">Select the user you want to assign this permission to</p>
+                </div>
+
+                <div class="mb-4">
+                    <label for="user-id-input" class="block text-sm font-medium text-gray-700 mb-1">User IDs (comma separated)</label>
+                    <div class="flex">
+                        <input type="text" id="user-id-input" placeholder="Enter user IDs (e.g. 123, 456)" class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <button id="add-users-btn" class="px-4 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            Add
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Users with this permission</label>
+                    <div id="assigned-users-list" class="space-y-2 max-h-40 overflow-y-auto">
+                        <!-- Assigned users will appear here -->
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <button id="cancel-assign" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button id="confirm-assign" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        Assign Permission
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="success-toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center hidden">
+        <i class="fas fa-check-circle mr-2"></i>
+        <span>Permission assigned successfully!</span>
+    </div>
+
+    <script>
+        // Sample permissions data
+
+        const permissions = @(new HtmlString(JsonSerializer.Serialize(Model.Permissions)));
+        // Current selected permission
+        let selectedPermission = null;
+
+        // DOM elements
+        const permissionsContainer = document.getElementById('permissions-container');
+        const assignModal = document.getElementById('assign-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const cancelAssignBtn = document.getElementById('cancel-assign');
+        const confirmAssignBtn = document.getElementById('confirm-assign');
+        const permissionNameSpan = document.getElementById('permission-name');
+        const userSelect = document.getElementById('user-select');
+        const successToast = document.getElementById('success-toast');
+
+        // Current filter state
+        let currentFilter = 'all';
+
+        // Render permissions with optional filter
+        function renderPermissions(filter = 'all') {
+            permissionsContainer.innerHTML = '';
+
+            const filteredPermissions = permissions.filter(permission => {
+                if (filter === 'all') return true;
+                if (filter === 'assigned') return permission.Assigned;
+                if (filter === 'unassigned') return !permission.Assigned;
+                return true;
+            });
+
+            filteredPermissions.forEach(permission => {
+                permission.Assigned = false;
+                const permissionCard = document.createElement('div');
+                permissionCard.className = `permission-card bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer ${permission.assigned ? 'border-l-4 border-l-green-500' : ''}`;
+                permissionCard.innerHTML = `
+                    <div class="p-5" data-id="${permission.id}">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">${permission.Name}</h3>
+                                <p class="text-sm text-gray-500 mt-1">${permission.Description}</p>
+                            </div>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${permission.Assigned ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                ${permission.Assigned ? 'Assigned' : 'Unassigned'}
+                            </span>
+                        </div>
+                        <div class="mt-4 flex items-center justify-between">
+                            <span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">${permission.Category}</span>
+                            <button class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                                ${permission.Assigned ? 'Reassign' : 'Assign'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                permissionCard.addEventListener('click', () => openAssignModal(permission));
+                permissionsContainer.appendChild(permissionCard);
+            });
+        }
+
+        // Open assign modal
+        function openAssignModal(permission) {
+            selectedPermission = permission;
+            permissionNameSpan.textContent = permission.Name;
+            document.getElementById('user-id-input').value = '';
+            assignModal.classList.remove('hidden');
+            renderAssignedUsers();
+        }
+
+        // Close assign modal
+        function closeAssignModal() {
+            assignModal.classList.add('hidden');
+        }
+
+        // Track assigned users for each permission
+        const permissionAssignments = {};
+
+        // Initialize permission assignments
+        permissions.forEach(permission => {
+            permissionAssignments[permission.Name] = permission.assigned ? ['user1', 'user2'] : [];
+        });
+
+        // Add users to permission
+        function addUsersToPermission() {
+            const userIdsInput = document.getElementById('user-id-input').value.trim();
+            if (!userIdsInput) {
+                alert('Please enter at least one user ID');
+                return;
+            }
+
+            const userIds = userIdsInput.split(',').map(id => id.trim()).filter(id => id);
+            if (userIds.length === 0) {
+                alert('Please enter valid user IDs');
+                return;
+            }
+
+            // Add new users (avoid duplicates)
+            const currentUsers = permissionAssignments[selectedPermission.Name] || [];
+            const newUsers = userIds.filter(id => !currentUsers.includes(id));
+            permissionAssignments[selectedPermission.Name] = [...currentUsers, ...newUsers];
+
+            // Update UI
+            renderAssignedUsers();
+            document.getElementById('user-id-input').value = '';
+
+            // Mark permission as assigned if it wasn't already
+            if (newUsers.length > 0 && !selectedPermission.assigned) {
+                const permissionIndex = permissions.findIndex(p => p.Name === selectedPermission.Name);
+                if (permissionIndex !== -1) {
+                    permissions[permissionIndex].assigned = true;
+                    renderPermissions();
+                }
+            }
+        }
+
+        // Render assigned users list
+        function renderAssignedUsers() {
+            const assignedUsersList = document.getElementById('assigned-users-list');
+            const users = permissionAssignments[selectedPermission.Name] || [];
+
+            if (users.length === 0) {
+                assignedUsersList.innerHTML = '<p class="text-sm text-gray-500">No users assigned yet</p>';
+                return;
+            }
+
+            assignedUsersList.innerHTML = users.map(userId => `
+                <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded">
+                    <span class="text-sm">User ID: ${userId}</span>
+                    <button class="text-red-500 hover:text-red-700 text-sm" data-user="${userId}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+
+            // Add event listeners to remove buttons
+            assignedUsersList.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const userId = button.getAttribute('data-user');
+                    permissionAssignments[selectedPermission.Name] =
+                        permissionAssignments[selectedPermission.Name].filter(id => id !== userId);
+                    renderAssignedUsers();
+
+                    // If no users left, mark permission as unassigned
+                    if (permissionAssignments[selectedPermission.id].length === 0) {
+                        const permissionIndex = permissions.findIndex(p => p.Name === selectedPermission.Name);
+                        if (permissionIndex !== -1) {
+                            permissions[permissionIndex].assigned = false;
+                            renderPermissions();
+                        }
+                    }
+                });
+            });
+        }
+
+        // Assign permission (save changes)
+        function assignPermission() {
+            // In a real app, you would make an API call here with all assigned users
+            console.log(`Assigning permission ${selectedPermission.Name} to users:`,
+                permissionAssignments[selectedPermission.Name]);
+
+            closeAssignModal();
+            showSuccessToast();
+        }
+
+        // Show success toast
+        function showSuccessToast() {
+            successToast.classList.remove('hidden');
+            setTimeout(() => {
+                successToast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Event listeners
+        closeModalBtn.addEventListener('click', closeAssignModal);
+        cancelAssignBtn.addEventListener('click', closeAssignModal);
+        confirmAssignBtn.addEventListener('click', assignPermission);
+        document.getElementById('add-users-btn').addEventListener('click', addUsersToPermission);
+
+        // Allow pressing Enter in the input field to add users
+        document.getElementById('user-id-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addUsersToPermission();
+            }
+        });
+
+        // Close modal when clicking outside
+        assignModal.addEventListener('click', (e) => {
+            if (e.target === assignModal) {
+                closeAssignModal();
+            }
+        });
+
+        // Initialize
+        renderPermissions();
+
+        // Tab event listeners
+        document.getElementById('all-tab').addEventListener('click', () => {
+            document.querySelectorAll('.flex button').forEach(btn => {
+                btn.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                btn.classList.add('text-gray-500');
+            });
+            document.getElementById('all-tab').classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+            document.getElementById('all-tab').classList.remove('text-gray-500');
+            currentFilter = 'all';
+            renderPermissions('all');
+        });
+
+        document.getElementById('assigned-tab').addEventListener('click', () => {
+            document.querySelectorAll('.flex button').forEach(btn => {
+                btn.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                btn.classList.add('text-gray-500');
+            });
+            document.getElementById('assigned-tab').classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+            document.getElementById('assigned-tab').classList.remove('text-gray-500');
+            currentFilter = 'assigned';
+            renderPermissions('assigned');
+        });
+
+        document.getElementById('unassigned-tab').addEventListener('click', () => {
+            document.querySelectorAll('.flex button').forEach(btn => {
+                btn.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                btn.classList.add('text-gray-500');
+            });
+            document.getElementById('unassigned-tab').classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+            document.getElementById('unassigned-tab').classList.remove('text-gray-500');
+            currentFilter = 'unassigned';
+            renderPermissions('unassigned');
+        });
+    </script>
 </body>
 </html>

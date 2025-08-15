@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using RazorLight;
+using SecureOps.Presentation.UI.Models;
 using SecureOps.Presentation.UI.Options;
 using SecureOps.Services;
 
@@ -30,18 +31,20 @@ internal class UIEndpoints
 
         if (options.EnableUserPermissionManagement)
         {
-            group.MapGet("/", async (HttpContext context, IPermissionService service) =>
-            {
-                var html = await View();
-                return Results.Text(html, "text/html");
 
-            });
-            group.MapGet("/Index", async (HttpContext context, IPermissionService service) =>
+            var indexDelegate = async (HttpContext context, IPermissionService service) =>
             {
-                var html = await View();
-                return Results.Text(html, "text/html");
+                var model = new PermissionViewModel
+                {
+                    Permissions = service.GetAllAvailablePermissions()
+                };
 
-            });
+                var html = await View("Index",model);
+                return Results.Text(html, "text/html");
+            };
+
+            group.MapGet("/", indexDelegate);
+            group.MapGet("/Index", indexDelegate);
         }
 
     }
@@ -51,4 +54,5 @@ internal class UIEndpoints
         ViewName += ".cshtml";
         return await _engine.CompileRenderAsync(ViewName, model ?? new { });
     }
+
 }

@@ -2,9 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using SecureOps.Services;
+using SecureOps.Services.Cache;
 using SecureOps.Services.Cache.Enums;
 using SecureOps.Services.Cache.Options;
-using SecureOps.Services.CacheServices;
 using StackExchange.Redis;
 
 namespace SecureOps;

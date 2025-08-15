@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
+using SecureOps.Authorize.Models;
 using SecureOps.Services;
 using SecureOps.Services.Cache.Options;
 using System.Security.Claims;
 
-namespace SecureOps.Filters;
+namespace SecureOps.Authorize;
 
 /// <summary>
 /// Specifies that the user must have a specific permission to access the decorated resource.
@@ -14,18 +15,17 @@ namespace SecureOps.Filters;
 /// authenticated user has the specified permission by delegating to an <see cref="IPermissionService" />. If the user
 /// is not authenticated, the request results in an <see cref="UnauthorizedResult" />. If the user lacks the required
 /// permission, the request results in a <see cref="ForbidResult" />.</remarks>
-public class HasPermissionAttribute : Attribute, IAsyncAuthorizationFilter
+/// <remarks>
+/// Initializes a new instance of the <see cref="HasPermissionAttribute"/> class with the specified permission.
+/// </remarks>
+/// <param name="permission">The name of the permission required to access the associated resource. Cannot be null or empty.</param>
+/// <param name="description"></param>
+/// <param name="category"></param>
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]
+public class HasPermissionAttribute(string permission, string description, string category) : Attribute, IAsyncAuthorizationFilter
 {
-    private readonly string _permission;
+    internal readonly PermissionModel Permission = new(permission, description, category);
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="HasPermissionAttribute"/> class with the specified permission.
-    /// </summary>
-    /// <param name="permission">The name of the permission required to access the associated resource. Cannot be null or empty.</param>
-    public HasPermissionAttribute(string permission)
-    {
-        _permission = permission;
-    }
     /// <summary>
     /// Handles authorization for the current HTTP request by validating the user's identity and permissions.
     /// </summary>
@@ -59,7 +59,7 @@ public class HasPermissionAttribute : Attribute, IAsyncAuthorizationFilter
         var permissionService = context.HttpContext.RequestServices
             .GetRequiredService<IPermissionService>();
 
-        bool hasPermission = await permissionService.HasPermissionAsync(userId, _permission);
+        bool hasPermission = await permissionService.HasPermissionAsync(userId, Permission.Name);
 
         if (!hasPermission)
         {
